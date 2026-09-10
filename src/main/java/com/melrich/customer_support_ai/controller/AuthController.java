@@ -65,6 +65,7 @@ public class AuthController {
     }
 
 
+
     @PostMapping("/register")
     public String register(@RequestBody RegisterRequest request){
 
@@ -95,7 +96,6 @@ public class AuthController {
 
         return "User successfully registered";
     }
-
 
     @GetMapping("/me")
     public Customer getCurrentUser(Authentication authentication) {
