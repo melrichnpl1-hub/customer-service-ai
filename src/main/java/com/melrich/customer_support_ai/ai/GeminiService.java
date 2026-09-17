@@ -1,6 +1,7 @@
 package com.melrich.customer_support_ai.ai;
 
 import com.google.genai.Client;
+import com.google.genai.errors.ClientException;
 import com.google.genai.types.*;
 
 
@@ -185,15 +186,22 @@ public class GeminiService {
 
             System.out.println("LOOP ITERATION: " + i);
 
-            // 4. Send everything to Gemini (ai-model, message, configuration)
-            GenerateContentResponse response =
-                    client.models.generateContent(
-                            "gemini-3.6-flash",
-                            contents,
-                            config
+            GenerateContentResponse response;
 
-                    );
+            try {
 
+                response = client.models.generateContent(
+                        "gemini-3.6-flash",
+                        contents,
+                        config
+                );
+
+            } catch (ClientException e) {
+
+                System.out.println("Gemini API error: " + e.getMessage());
+
+                throw e;
+            }
             // Get first response Part
             Content modelContent =
                     response

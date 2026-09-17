@@ -1,6 +1,7 @@
 package com.melrich.customer_support_ai.controller;
 
 
+import com.google.genai.errors.ClientException;
 import com.melrich.customer_support_ai.ai.GeminiService;
 import com.melrich.customer_support_ai.dto.ChatMessageResponse;
 import com.melrich.customer_support_ai.dto.ChatRequest;
@@ -33,17 +34,39 @@ public class ChatController {
 
         Customer customer = customerRepository
                 .findByUserUsername(username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No customer found for user: " + username));
-
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "No customer found for user: " + username
+                ));
 
         String currentTime = LocalTime.now()
-                        .format(DateTimeFormatter.ofPattern("h:mm a"));
+                .format(DateTimeFormatter.ofPattern("h:mm a"));
 
         System.out.println("Logged in user: " + username);
         System.out.println("Message: " + request.content());
 
-        String aiMessage =
-                geminiService.sendMessage(request.content(), customer);
+        String aiMessage;
+
+        try {
+
+            aiMessage =
+                    geminiService.sendMessage(
+                            request.content(),
+                            customer
+                    );
+
+        } catch (ClientException e) {
+
+            System.out.println(
+                    "Gemini API error: " + e.getMessage()
+            );
+
+            throw new ResponseStatusException(
+                    HttpStatus.TOO_MANY_REQUESTS,
+                    "AI service quota exceeded",
+                    e
+            );
+        }
 
         return new ChatRequest(
                 request.id() + 1,
